@@ -1,0 +1,20 @@
+// {
+//   "name": "inventaku",
+//   "module": "index.ts",
+//   "type": "module",
+//   "private": true,
+//   "workspace": ["apps/*"],
+//   "devDependencies": {
+//     "@types/bun": "latest",
+//     "concurrently": "^9.2.1"
+//   },
+//   "peerDependencies": {
+//     "typescript": "^5"
+//   }
+// }
+
+
+TEMPORARY IDENTITY :
+admin / admin123
+operator / operator123
+employee / employee123

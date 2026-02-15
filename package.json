@@ -1,0 +1,21 @@
+{
+  "name": "inventaku",
+  "private": true,
+  "workspaces": ["apps/*"],
+  "scripts": {
+    "dev": "concurrently -n API,WEB -c auto \"bun --cwd apps/api dev\" \"bun --cwd apps/web dev\"",
+    "build": "bun --cwd apps/web build",
+    "start:api": "bun --cwd apps/api start"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/node": "^25.0.8",
+    "concurrently": "^9.2.1",
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "lucide-react": "^0.562.0",
+    "react-hot-toast": "^2.6.0",
+    "react-router-dom": "^7.12.0"
+  }
+}
