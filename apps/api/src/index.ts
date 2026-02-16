@@ -9,7 +9,7 @@ import type { Context, Next, HonoRequest } from "hono";
 // =======================
 type Role = "admin" | "operator" | "employee";
 type ItemCondition = "BAIK" | "RUSAK_RINGAN" | "RUSAK_BERAT";
-type LoanStatus = "DIPINJAM" | "SEBAGIAN" | "SELESAI";
+type LoanStatus = "PENDING" | "DITOLAK" | "DIPINJAM" | "SEBAGIAN" | "SELESAI";
 
 type User = {
   id: string;
@@ -135,7 +135,7 @@ type HonoEnv = {
 };
 
 const app = new Hono<HonoEnv>();
-const WEB_ORIGIN = "http://localhost:5173";
+const WEB_ORIGIN = ["http://localhost:5173", "http://localhost:5174"];
 const SESSION_COOKIE = "sid";
 
 app.use("*", cors({ origin: WEB_ORIGIN, credentials: true }));
@@ -174,6 +174,8 @@ function getSessionUser(c: Context) {
 }
 
 function computeLoanStatus(loan: Loan): LoanStatus {
+  if (loan.status === "PENDING" || loan.status === "DITOLAK") return loan.status;
+  
   const total = loan.items.reduce((a, it) => a + it.jumlah, 0);
   const returned = loan.items.reduce((a, it) => a + it.kembali, 0);
   if (returned <= 0) return "DIPINJAM";
@@ -432,7 +434,7 @@ app.post("/auth/logout", (c) => {
 // =======================
 // Routes: Users
 // =======================
-app.get("/users", requireAuth(), requireRole(["admin"]), (c) => {
+app.get("/users", requireAuth(), requireRole(["admin", "operator"]), (c) => {
   return c.json({ data: users.map(sanitizeUser) });
 });
 
@@ -590,7 +592,7 @@ app.get("/loans", requireAuth(), (c) => {
   return c.json({ data: rows });
 });
 
-app.post("/loans", requireAuth(), requireRole(["admin", "operator"]), async (c) => {
+app.post("/loans", requireAuth(), async (c) => {
   const me = c.get("user") as User;
   const body = await c.req.json().catch(() => ({}));
   
@@ -599,17 +601,20 @@ app.post("/loans", requireAuth(), requireRole(["admin", "operator"]), async (c) 
     return c.json({ message: "Validasi gagal", errors }, 400);
   }
   
-  // Final stock validation and reduction
   const loanItems: LoanItem[] = [];
   for (const it of body.items) {
     const inv = getItemById(it.invId)!;
     const qty = Number(it.jumlah);
     
-    if (inv.stok < qty) {
-      return c.json({ message: `Stok ${inv.nama} tidak cukup` }, 400);
-    }
+    // Validasi stok (tanpa pengurangan)
+    // Walaupun pending, kita cek apakah stok cukup untuk saat ini
+    // Tapi karena sifatnya request, mungkin kita bolehin request dulu?
+    // Sesuai flow: "Terima -> Cek Stok". Jadi di sini validasi basic aja.
+    // Tapi biar UX bagus, kasih tau kalo stok kurang.
     
-    inv.stok -= qty;
+    // NOTE: User logic wants input validation, then Insert 'Pending'.
+    // Stock is NOT deducted here.
+    
     loanItems.push({ 
       invId: inv.id, 
       nama: inv.nama, 
@@ -624,14 +629,72 @@ app.post("/loans", requireAuth(), requireRole(["admin", "operator"]), async (c) 
     peminjamId: peminjam.id,
     peminjamNama: peminjam.name,
     tanggal: body.tanggal,
-    status: "DIPINJAM",
+    status: "PENDING", // Start as PENDING
     items: loanItems,
     createdBy: me.id,
     returnedAt: null,
   };
   
   loans.unshift(newLoan);
+  logAudit("CREATE_REQUEST", "Loan", newLoan.id, me, { peminjam: peminjam.name });
   return c.json({ data: newLoan }, 201);
+});
+
+app.post("/loans/:id/approve", requireAuth(), requireRole(["admin", "operator"]), async (c) => {
+  const me = c.get("user") as User;
+  const id = c.req.param("id");
+  const loan = loans.find((l) => l.id === id);
+  if (!loan) return c.json({ message: "Peminjaman tidak ditemukan" }, 404);
+  
+  if (loan.status !== "PENDING") {
+    return c.json({ message: `Status peminjaman bukan PENDING (saat ini: ${loan.status})` }, 400);
+  }
+  
+  // 1. Cek stok
+  const errors: string[] = [];
+  for (const item of loan.items) {
+    const inv = getItemById(item.invId);
+    if (!inv) {
+      errors.push(`Barang ${item.nama} tidak ditemukan`);
+      continue;
+    }
+    if (inv.stok < item.jumlah) {
+      errors.push(`Stok ${item.nama} tidak cukup (tersedia: ${inv.stok}, diminta: ${item.jumlah})`);
+    }
+  }
+  
+  if (errors.length > 0) {
+    return c.json({ message: "Stok tidak mencukupi", errors }, 400);
+  }
+  
+  // 2. Kurangi stok
+  for (const item of loan.items) {
+    const inv = getItemById(item.invId);
+    if (inv) inv.stok -= item.jumlah;
+  }
+  
+  // 3. Update Status
+  loan.status = "DIPINJAM";
+  
+  logAudit("APPROVE", "Loan", loan.id, me);
+  return c.json({ data: loan });
+});
+
+app.post("/loans/:id/reject", requireAuth(), requireRole(["admin", "operator"]), async (c) => {
+  const me = c.get("user") as User;
+  const id = c.req.param("id");
+  const loan = loans.find((l) => l.id === id);
+  if (!loan) return c.json({ message: "Peminjaman tidak ditemukan" }, 404);
+  
+  if (loan.status !== "PENDING") {
+    return c.json({ message: `Status peminjaman bukan PENDING (saat ini: ${loan.status})` }, 400);
+  }
+  
+  // Update status only, no stock change
+  loan.status = "DITOLAK";
+  
+  logAudit("REJECT", "Loan", loan.id, me);
+  return c.json({ data: loan });
 });
 
 app.post("/loans/:id/return", requireAuth(), async (c) => {

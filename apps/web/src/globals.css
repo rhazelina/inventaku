@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+@theme {
+  /* Color Palette */
+  --color-background: #F3F3F3;
+  --color-surface: #FFFFFF;
+  --color-card: #C6C6C6;
+  --color-border: #9A9A9A;
+  --color-sidebar: #373737;
+  
+  --color-text-primary: #212121;
+  --color-text-secondary: #555555;
+
+  --color-primary: #2F5D8C;
+  --color-primary-hover: #24496D;
+  --color-primary-active: #1E3A5F;
+  --color-accent-light: #DCE6F2;
+
+  --color-status-success: #4CAF50;
+  --color-status-warning: #F4B400;
+  --color-status-info: #4A90E2;
+  --color-status-error: #D64545; /* Renamed from Danger to Error for standard convention, but mapped to requested color */
+  --color-status-maintenance: #9C6ADE;
+
+  /* Typography */
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Base Styles */
+@layer base {
+  body {
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
+    font-family: var(--font-sans);
+  }
+}
