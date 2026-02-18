@@ -236,7 +236,7 @@ const navItems: NavItemDef[] = [
   { to: "/dashboard", icon: Home, label: "Dashboard", end: true, requiredRole: "employee" },
   { to: "/request-loan", icon: ArrowLeftRight, label: "Peminjaman", requiredRole: "employee" },
   { to: "/loans", icon: FileText, label: "Verifikasi", requiredRole: "operator", badge: true },
-  { to: "/returns", icon: ArrowLeftRight, label: "Pengembalian", requiredRole: "operator", badge: true },
+  { to: "/returns", icon: ArrowLeftRight, label: "Pengembalian", requiredRole: "employee", badge: true },
   { to: "/reports", icon: FileText, label: "Laporan", requiredRole: "admin" }
 ];
 
@@ -253,7 +253,7 @@ const checkRole = (user: any, requiredRole: string) => {
     'employee': ['employee']
   };
   
-  return roleHierarchy[requiredRoleLower]?.includes(userRole) || false;
+  return roleHierarchy[userRole]?.includes(requiredRoleLower) || false;
 };
 
 export default function Navbar() {
@@ -554,14 +554,16 @@ export default function Navbar() {
                       <User className="w-4 h-4 text-slate-300" />
                       <span>Profil Saya</span>
                     </Link>
-                    <Link
-                      to="/settings"
-                      onClick={closeAll}
-                      className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-200 hover:bg-white/10 transition-colors"
-                    >
-                      <Settings className="w-4 h-4 text-slate-300" />
-                      <span>Pengaturan</span>
-                    </Link>
+                    {hasRole("admin") && (
+                      <Link
+                        to="/settings"
+                        onClick={closeAll}
+                        className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-200 hover:bg-white/10 transition-colors"
+                      >
+                        <Settings className="w-4 h-4 text-slate-300" />
+                        <span>Pengaturan</span>
+                      </Link>
+                    )}
                     <button
                       onClick={onLogout}
                       disabled={loading}

@@ -171,6 +171,12 @@ export const ReportsAPI = {
       from: q.from || "",
       to: q.to || "",
       status: q.status || "ALL",
+      role: q.role || "ALL",
+      item: q.item || "",
+      page: String(q.page || 1),
+      limit: String(q.limit || 20),
+      sortBy: q.sortBy || "tanggal",
+      sortDir: q.sortDir || "desc",
     }).toString();
 
     return request(`/reports/summary?${params}`, { method: "GET" });
@@ -181,9 +187,34 @@ export const ReportsAPI = {
       from: q.from || "",
       to: q.to || "",
       status: q.status || "ALL",
+      role: q.role || "ALL",
+      item: q.item || "",
+      sortBy: q.sortBy || "tanggal",
+      sortDir: q.sortDir || "desc",
     }).toString();
 
     return request(`/reports/loans?${params}`, { method: "GET" });
+  },
+
+  exportPdf: async (q: any = {}) => {
+    const params = new URLSearchParams({
+      from: q.from || "",
+      to: q.to || "",
+      status: q.status || "ALL",
+      role: q.role || "ALL",
+      item: q.item || "",
+      sortBy: q.sortBy || "tanggal",
+      sortDir: q.sortDir || "desc",
+    }).toString();
+    const res = await fetch(`${API_BASE}/reports/export/pdf?${params}`, {
+      method: "GET",
+      credentials: "include",
+    });
+    if (!res.ok) {
+      const msg = `Export PDF gagal (${res.status})`;
+      throw new Error(msg);
+    }
+    return res.blob();
   },
 };
 
@@ -236,14 +267,22 @@ export function updateSettings(payload: any) {
   return request("/settings", { method: "POST", body: payload });
 }
 
+export function getInventorySettings() {
+  return request("/settings/inventory", { method: "GET" });
+}
+
+export function updateInventorySettings(payload: any) {
+  return request("/settings/inventory", { method: "POST", body: payload });
+}
+
 export const apiSystemSettings = {
   get: getSettings,
   update: updateSettings
 };
 
 export const apiInventorySettings = {
-  get: getSettings, // Assuming same endpoint for now or adjust if specialized
-  update: updateSettings
+  get: getInventorySettings,
+  update: updateInventorySettings
 };
 
 

@@ -95,6 +95,8 @@ type Notification = {
   createdAt: string;
 };
 
+type UserSettings = Record<string, any>;
+
 // =======================
 // Demo Data
 // =======================
@@ -137,6 +139,34 @@ const units: Unit[] = [
 ];
 
 const auditLogs: AuditLog[] = [];
+const systemSettings: UserSettings = {
+  appName: "Inventaku",
+  timezone: "Asia/Jakarta",
+  dateFormat: "DD/MM/YYYY",
+  maxLoanDays: 7,
+  maxItemsPerLoan: 5,
+  reminderBeforeDueDays: 1,
+  reminderAfterDueDays: 1,
+  autoApproveLoan: false,
+  sessionTimeoutMinutes: 60,
+  maxLoginAttempts: 5,
+  enableLoanNotifications: true,
+  enableSystemNotifications: true,
+  lowStockThreshold: 10,
+};
+
+const inventorySettingsByUser = new Map<string, UserSettings>([
+  [
+    "u2",
+    {
+      lowStockThreshold: 10,
+      enableAutoNotifications: true,
+      damageReportNotifications: true,
+      expiredItemsNotifications: true,
+      inventoryCheckReminders: true,
+    },
+  ],
+]);
 const notifications: Notification[] = [
   {
     id: crypto.randomUUID(),
@@ -216,6 +246,128 @@ function computeLoanStatus(loan: Loan): LoanStatus {
   if (returned <= 0) return "DIPINJAM";
   if (returned >= total) return "SELESAI";
   return "SEBAGIAN";
+}
+
+type ReportQuery = {
+  from?: string;
+  to?: string;
+  status?: string;
+  role?: string;
+  item?: string;
+  sortBy?: string;
+  sortDir?: string;
+};
+
+function mapReportRow(l: Loan) {
+  const creator = getUserById(l.createdBy);
+  return {
+    id: l.id,
+    tanggal: l.tanggal,
+    peminjam: l.peminjamNama,
+    peminjamRole: getUserById(l.peminjamId)?.role ?? "employee",
+    status: l.status,
+    itemCount: l.items.length,
+    itemQty: l.items.reduce((a, b) => a + b.jumlah, 0),
+    itemNames: l.items.map((it) => it.nama),
+    items: l.items,
+    returnedAt: l.returnedAt ?? null,
+    createdBy: creator?.name || "Unknown",
+    createdByRole: creator?.role || "unknown",
+  };
+}
+
+function getReportRows(query: ReportQuery) {
+  const from = query.from;
+  const to = query.to;
+  const status = query.status;
+  const role = query.role;
+  const item = (query.item || "").toLowerCase().trim();
+  const sortBy = query.sortBy || "tanggal";
+  const sortDir = query.sortDir === "asc" ? "asc" : "desc";
+
+  let rows = loans.slice();
+  if (from && isISODate(from)) rows = rows.filter((l) => l.tanggal >= from);
+  if (to && isISODate(to)) rows = rows.filter((l) => l.tanggal <= to);
+  if (status && status !== "ALL") rows = rows.filter((l) => l.status === status);
+  if (role && role !== "ALL") {
+    const roleLc = role.toLowerCase();
+    rows = rows.filter((l) => getUserById(l.createdBy)?.role.toLowerCase() === roleLc);
+  }
+  if (item) rows = rows.filter((l) => l.items.some((it) => it.nama.toLowerCase().includes(item)));
+
+  const mapped = rows.map(mapReportRow);
+  const factor = sortDir === "asc" ? 1 : -1;
+  const pick = (r: ReturnType<typeof mapReportRow>) => {
+    switch (sortBy) {
+      case "status":
+        return r.status;
+      case "peminjam":
+        return r.peminjam.toLowerCase();
+      case "createdBy":
+        return r.createdBy.toLowerCase();
+      case "itemQty":
+        return r.itemQty;
+      case "itemCount":
+        return r.itemCount;
+      case "returnedAt":
+        return r.returnedAt || "";
+      case "tanggal":
+      default:
+        return r.tanggal;
+    }
+  };
+
+  mapped.sort((a, b) => {
+    const va = pick(a);
+    const vb = pick(b);
+    if (typeof va === "number" && typeof vb === "number") return (va - vb) * factor;
+    return String(va).localeCompare(String(vb)) * factor;
+  });
+
+  return mapped;
+}
+
+function buildMinimalPdf(lines: string[]) {
+  const maxLines = 55;
+  const safeLines = lines.slice(0, maxLines).map((line) =>
+    line.replace(/\\/g, "\\\\").replace(/\(/g, "\\(").replace(/\)/g, "\\)")
+  );
+  if (lines.length > maxLines) {
+    safeLines.push(`... ${lines.length - maxLines} baris lainnya tidak ditampilkan di halaman ini`);
+  }
+
+  const contentLines = [
+    "BT",
+    "/F1 10 Tf",
+    "50 800 Td",
+    "14 TL",
+    ...safeLines.map((line, idx) => (idx === 0 ? `(${line}) Tj` : "T* (" + line + ") Tj")),
+    "ET",
+  ].join("\n");
+
+  const objects = [
+    "1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj",
+    "2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj",
+    "3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R >> endobj",
+    `4 0 obj << /Length ${contentLines.length} >> stream\n${contentLines}\nendstream endobj`,
+    "5 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj",
+  ];
+
+  let body = "%PDF-1.4\n";
+  const offsets: number[] = [0];
+  for (const obj of objects) {
+    offsets.push(body.length);
+    body += obj + "\n";
+  }
+  const xrefOffset = body.length;
+  body += `xref\n0 ${objects.length + 1}\n`;
+  body += "0000000000 65535 f \n";
+  for (let i = 1; i <= objects.length; i++) {
+    body += `${String(offsets[i]).padStart(10, "0")} 00000 n \n`;
+  }
+  body += `trailer << /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`;
+
+  return new TextEncoder().encode(body);
 }
 
 function createNotification(input: {
@@ -520,7 +672,7 @@ app.post("/auth/logout", (c) => {
 // =======================
 // Routes: Users
 // =======================
-app.get("/users", requireAuth(), requireRole(["admin", "operator"]), (c) => {
+app.get("/users", requireAuth(), requireRole(["admin"]), (c) => {
   return c.json({ data: users.map(sanitizeUser) });
 });
 
@@ -844,43 +996,102 @@ app.post("/loans/:id/return", requireAuth(), async (c) => {
 // =======================
 // Routes: Reports
 // =======================
-app.get("/reports/summary", requireAuth(), requireRole(["admin", "operator"]), (c) => {
-  const from = c.req.query("from");
-  const to = c.req.query("to");
-  const status = c.req.query("status");
-  
-  let rows = loans.slice();
-  
-  if (from && isISODate(from)) rows = rows.filter((l) => l.tanggal >= from);
-  if (to && isISODate(to)) rows = rows.filter((l) => l.tanggal <= to);
-  if (status && status !== "ALL") rows = rows.filter((l) => l.status === status);
-  
-  const total = rows.length;
-  const dipinjam = rows.filter((l) => l.status === "DIPINJAM").length;
-  const sebagian = rows.filter((l) => l.status === "SEBAGIAN").length;
-  const selesai = rows.filter((l) => l.status === "SELESAI").length;
-  
+app.get("/reports/summary", requireAuth(), requireRole(["admin"]), (c) => {
+  const page = Math.max(1, Number(c.req.query("page") || "1"));
+  const limit = Math.max(1, Math.min(100, Number(c.req.query("limit") || "20")));
+  const allRows = getReportRows({
+    from: c.req.query("from"),
+    to: c.req.query("to"),
+    status: c.req.query("status"),
+    role: c.req.query("role"),
+    item: c.req.query("item"),
+    sortBy: c.req.query("sortBy"),
+    sortDir: c.req.query("sortDir"),
+  });
+
+  const total = allRows.length;
+  const pending = allRows.filter((l) => l.status === "PENDING").length;
+  const ditolak = allRows.filter((l) => l.status === "DITOLAK").length;
+  const dipinjam = allRows.filter((l) => l.status === "DIPINJAM").length;
+  const sebagian = allRows.filter((l) => l.status === "SEBAGIAN").length;
+  const selesai = allRows.filter((l) => l.status === "SELESAI").length;
+  const totalItemLines = allRows.reduce((acc, l) => acc + l.itemCount, 0);
+  const totalItemQty = allRows.reduce((acc, l) => acc + l.itemQty, 0);
+  const completionRate = total > 0 ? (selesai / total) * 100 : 0;
+  const activeRate = total > 0 ? ((dipinjam + sebagian) / total) * 100 : 0;
+  const totalPages = Math.max(1, Math.ceil(total / limit));
+  const safePage = Math.min(page, totalPages);
+  const start = (safePage - 1) * limit;
+  const pagedRows = allRows.slice(start, start + limit);
+
   return c.json({
     total,
+    page: safePage,
+    limit,
+    totalPages,
+    pending,
+    ditolak,
     dipinjam,
     sebagian,
     selesai,
-    rows: rows.map((l) => ({
-      id: l.id,
-      tanggal: l.tanggal,
-      peminjam: l.peminjamNama,
-      status: l.status,
-      itemCount: l.items.reduce((a, b) => a + b.jumlah, 0),
-      returnedAt: l.returnedAt ?? null,
-      createdBy: getUserById(l.createdBy)?.name || "Unknown",
-    })),
+    kpi: {
+      totalTransactions: total,
+      totalItemLines,
+      totalItemQty,
+      completionRate: Number(completionRate.toFixed(2)),
+      activeRate: Number(activeRate.toFixed(2)),
+    },
+    rows: pagedRows,
   });
+});
+
+app.get("/reports/loans", requireAuth(), requireRole(["admin"]), (c) => {
+  const rows = getReportRows({
+    from: c.req.query("from"),
+    to: c.req.query("to"),
+    status: c.req.query("status"),
+    role: c.req.query("role"),
+    item: c.req.query("item"),
+    sortBy: c.req.query("sortBy"),
+    sortDir: c.req.query("sortDir"),
+  });
+  return c.json({
+    data: rows,
+  });
+});
+
+app.get("/reports/export/pdf", requireAuth(), requireRole(["admin"]), (c) => {
+  const rows = getReportRows({
+    from: c.req.query("from"),
+    to: c.req.query("to"),
+    status: c.req.query("status"),
+    role: c.req.query("role"),
+    item: c.req.query("item"),
+    sortBy: c.req.query("sortBy"),
+    sortDir: c.req.query("sortDir"),
+  });
+  const lines = [
+    "Laporan Peminjaman Inventaku",
+    `Periode: ${c.req.query("from") || "-"} s/d ${c.req.query("to") || "-"}`,
+    `Status: ${c.req.query("status") || "ALL"} | Role: ${c.req.query("role") || "ALL"} | Item: ${c.req.query("item") || "-"}`,
+    `Total transaksi: ${rows.length}`,
+    "--------------------------------------------",
+    ...rows.map(
+      (r) =>
+        `${r.tanggal} | ${r.peminjam} | ${r.status} | qty ${r.itemQty} | ${r.createdBy} | ${(r.itemNames || []).join(", ")}`
+    ),
+  ];
+  const pdfBytes = buildMinimalPdf(lines);
+  const filename = `laporan-${c.req.query("from") || "all"}-${c.req.query("to") || "all"}.pdf`;
+  c.header("Content-Type", "application/pdf");
+  c.header("Content-Disposition", `attachment; filename="${filename}"`);
+  return c.body(pdfBytes);
 });
 
 // =======================
 // Routes: Categories
 // =======================
-app.get("/categories", requireAuth(), (c) => {
+app.get("/categories", requireAuth(), requireRole(["admin", "operator"]), (c) => {
   return c.json({ data: categories });
 });
 
@@ -939,7 +1150,7 @@ app.delete("/categories/:id", requireAuth(), requireRole(["admin", "operator"]),
 // =======================
 // Routes: Locations
 // =======================
-app.get("/locations", requireAuth(), (c) => {
+app.get("/locations", requireAuth(), requireRole(["admin", "operator"]), (c) => {
   return c.json({ data: locations });
 });
 
@@ -998,7 +1209,7 @@ app.delete("/locations/:id", requireAuth(), requireRole(["admin", "operator"]), 
 // =======================
 // Routes: Units
 // =======================
-app.get("/units", requireAuth(), (c) => {
+app.get("/units", requireAuth(), requireRole(["admin", "operator"]), (c) => {
   return c.json({ data: units });
 });
 
@@ -1071,6 +1282,42 @@ app.get("/audit-logs", requireAuth(), requireRole(["admin", "operator"]), (c) =>
   if (userId) rows = rows.filter((l) => l.userId === userId);
   
   return c.json({ data: rows });
+});
+
+// =======================
+// Routes: Settings
+// =======================
+app.get("/settings", requireAuth(), requireRole(["admin"]), (c) => {
+  return c.json({ data: systemSettings });
+});
+
+app.post("/settings", requireAuth(), requireRole(["admin"]), async (c) => {
+  const me = c.get("user") as User;
+  const body = await c.req.json().catch(() => ({}));
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return c.json({ message: "Payload tidak valid" }, 400);
+  }
+  Object.assign(systemSettings, body);
+  logAudit("UPDATE_SETTINGS", "SystemSettings", "global", me, { keys: Object.keys(body) });
+  return c.json({ data: systemSettings });
+});
+
+app.get("/settings/inventory", requireAuth(), requireRole(["admin", "operator"]), (c) => {
+  const me = c.get("user") as User;
+  return c.json({ data: inventorySettingsByUser.get(me.id) ?? {} });
+});
+
+app.post("/settings/inventory", requireAuth(), requireRole(["admin", "operator"]), async (c) => {
+  const me = c.get("user") as User;
+  const body = await c.req.json().catch(() => ({}));
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return c.json({ message: "Payload tidak valid" }, 400);
+  }
+  const current = inventorySettingsByUser.get(me.id) ?? {};
+  const updated = { ...current, ...body };
+  inventorySettingsByUser.set(me.id, updated);
+  logAudit("UPDATE_SETTINGS", "InventorySettings", me.id, me, { keys: Object.keys(body) });
+  return c.json({ data: updated });
 });
 
 // =======================

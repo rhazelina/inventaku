@@ -125,12 +125,12 @@ export default function Users() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Users</h1>
-          <p className="text-text-secondary">Manage system users and roles.</p>
+          <h1 className="text-3xl font-bold tracking-tight">Pengguna</h1>
+          <p className="text-text-secondary">Kelola pengguna dan peran sistem.</p>
         </div>
         <Button variant="outline" onClick={refresh} disabled={loading}>
           <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
-          Refresh
+            Perbarui
         </Button>
       </div>
 
@@ -154,7 +154,7 @@ export default function Users() {
                 <Input
                   value={form.name}
                   onChange={(e) => setForm((s) => ({ ...s, name: e.target.value }))}
-                  placeholder="Full Name"
+                  placeholder="Nama Lengkap"
                 />
               </div>
 
@@ -183,13 +183,13 @@ export default function Users() {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">
-                  Password {isEditing && <span className="text-text-secondary font-normal">(Optional)</span>}
+                  Kata Sandi {isEditing && <span className="text-text-secondary font-normal">(Optional)</span>}
                 </label>
                 <Input
                   value={form.password}
                   onChange={(e) => setForm((s) => ({ ...s, password: e.target.value }))}
                   type="password"
-                  placeholder={isEditing ? "Leave blank to keep current" : "Required for new user"}
+                  placeholder={isEditing ? "Biarkan kosong jika tidak ingin mengubah" : "Dibutuhkan untuk user baru"}
                 />
               </div>
 
@@ -209,7 +209,7 @@ export default function Users() {
         <div className="lg:col-span-2">
           <Card>
             <CardHeader>
-              <CardTitle>User List</CardTitle>
+              <CardTitle>Daftar Pengguna</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
                <div className="overflow-x-auto">
@@ -232,7 +232,7 @@ export default function Users() {
                     ) : rows.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={4} className="h-24 text-center text-text-secondary">
-                          No users found.
+                          Tidak ada pengguna ditemukan.
                         </TableCell>
                       </TableRow>
                     ) : (

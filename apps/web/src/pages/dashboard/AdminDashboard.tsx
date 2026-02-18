@@ -100,39 +100,44 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard Overview</h1>
-        <p className="text-text-secondary">Welcome back, Admin. Here's what's happening today.</p>
+        <h1 className="text-3xl font-bold tracking-tight">Beranda</h1>
+        <p className="text-text-secondary">Selamat datang, Admin!</p>
+     {/* Fitur Jam, Beserta Tanggal Hari Ini, Bulan Ini  */}
+        <div className="mt-2 text-sm text-text-secondary">
+          {new Date().toLocaleString("id-ID", { dateStyle: "full", timeStyle: "short" })}
+        </div>
+
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Pengguna</CardTitle>
             <Users className="h-4 w-4 text-text-secondary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalUsers}</div>
-            <p className="text-xs text-text-secondary">Active accounts</p>
+            <p className="text-xs text-text-secondary">Akun yang aktif</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Items</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Item</CardTitle>
             <Package className="h-4 w-4 text-text-secondary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalItems}</div>
-            <p className="text-xs text-text-secondary">In inventory</p>
+            <p className="text-xs text-text-secondary">Tersedia di Inventaris</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Loans</CardTitle>
+            <CardTitle className="text-sm font-medium">Peminjaman Aktif</CardTitle>
             <FileText className="h-4 w-4 text-text-secondary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.activeLoans}</div>
-            <p className="text-xs text-text-secondary">Currently borrowed</p>
+            <p className="text-xs text-text-secondary">Sedang dalam masa peminjaman</p>
           </CardContent>
         </Card>
          <Card>
@@ -142,7 +147,7 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.lowStock}</div>
-            <p className="text-xs text-text-secondary">Items need restock</p>
+            <p className="text-xs text-text-secondary">Item atau barang yang stoknya rendah</p>
           </CardContent>
         </Card>
       </div>
@@ -150,15 +155,15 @@ export default function AdminDashboard() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         <Card className="col-span-4">
           <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
+            <CardTitle>Aktifitas Terakhir</CardTitle>
           </CardHeader>
           <CardContent>
              <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Borrower</TableHead>
+                    <TableHead>Tanggal</TableHead>
+                    <TableHead>Peminjam</TableHead>
                     <TableHead>Items</TableHead>
                     <TableHead>Status</TableHead>
                   </TableRow>
@@ -190,7 +195,7 @@ export default function AdminDashboard() {
             <div className="mt-4 flex justify-end">
                <Link to="/loans">
                   <Button variant="ghost" size="sm" className="gap-1">
-                    View all loans <ArrowRight className="h-4 w-4" />
+                    Lihat semua peminjaman <ArrowRight className="h-4 w-4" />
                   </Button>
                </Link>
             </div>
@@ -200,27 +205,27 @@ export default function AdminDashboard() {
         <div className="col-span-3 space-y-4">
            <Card>
             <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
+              <CardTitle>Aksi Cepat (CTA)</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-2">
                <Link to="/users">
                  <Button variant="outline" className="w-full justify-start">
-                   <Users className="mr-2 h-4 w-4" /> Manage Users
+                   <Users className="mr-2 h-4 w-4" /> Atur Pengguna
                  </Button>
                </Link>
                <Link to="/loans">
                  <Button variant="outline" className="w-full justify-start">
-                   <FileText className="mr-2 h-4 w-4" /> Create Loan
+                   <FileText className="mr-2 h-4 w-4" /> Kelola Peminjaman
                  </Button>
                </Link>
                <Link to="/returns">
                  <Button variant="outline" className="w-full justify-start">
-                   <TrendingUp className="mr-2 h-4 w-4" /> Process Returns
+                   <TrendingUp className="mr-2 h-4 w-4" /> Proses Pengembalian
                  </Button>
                </Link>
                <Link to="/reports">
                  <Button variant="outline" className="w-full justify-start">
-                   <FileText className="mr-2 h-4 w-4" /> Generate Reports
+                   <FileText className="mr-2 h-4 w-4" /> Pembuatan Laporan
                  </Button>
                </Link>
             </CardContent>
@@ -229,20 +234,20 @@ export default function AdminDashboard() {
           {report && (
             <Card>
               <CardHeader>
-                <CardTitle>Report Summary</CardTitle>
+                <CardTitle>Ringkasan Laporan</CardTitle>
               </CardHeader>
               <CardContent>
                  <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-text-secondary">Total Transactions</span>
+                      <span className="text-text-secondary">Total Transaksi</span>
                       <span className="font-medium">{report.total ?? "-"}</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-text-secondary">Borrowed</span>
+                      <span className="text-text-secondary">Dipinjam</span>
                       <span className="font-medium text-blue-600">{report.dipinjam ?? "-"}</span>
                     </div>
                      <div className="flex justify-between text-sm">
-                      <span className="text-text-secondary">Completed</span>
+                      <span className="text-text-secondary">Selesai</span>
                       <span className="font-medium text-green-600">{report.selesai ?? "-"}</span>
                     </div>
                  </div>

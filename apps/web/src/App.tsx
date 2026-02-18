@@ -25,6 +25,7 @@ const RequestLoan = lazy(() => import("./pages/RequestLoan"));
 const Returns = lazy(() => import("./pages/Returns"));
 const Reports = lazy(() => import("./pages/Reports"));
 const Notifications = lazy(() => import("./pages/Notifications"));
+const Settings = lazy(() => import("./pages/Settings"));
 
 const Unauthorized = lazy(() => import("./pages/Unauthorized"));
 
@@ -42,18 +43,19 @@ interface RouteConfig {
 const protectedRoutes: RouteConfig[] = [
   { path: "/dashboard", element: <Dashboard />, name: "Dashboard" },
   { path: "/users", element: <Users />, name: "Users", role: "admin" },
-  { path: "/classes", element: <Classes />, name: "Classes" },
-  { path: "/items", element: <Items />, name: "Items" },
-  { path: "/categories", element: <Categories />, name: "Categories" },
-  { path: "/locations", element: <Locations />, name: "Locations" },
-  { path: "/units", element: <Units />, name: "Units" },
+  { path: "/classes", element: <Classes />, name: "Classes", role: "operator" },
+  { path: "/items", element: <Items />, name: "Items", role: "operator" },
+  { path: "/categories", element: <Categories />, name: "Categories", role: "operator" },
+  { path: "/locations", element: <Locations />, name: "Locations", role: "operator" },
+  { path: "/units", element: <Units />, name: "Units", role: "operator" },
   { path: "/access", element: <Access />, name: "Access", role: "admin" },
   { path: "/profile", element: <Profile />, name: "Profile" },
   { path: "/audit", element: <Audit />, name: "Audit", role: "admin" },
-  { path: "/loans", element: <Loans />, name: "Loans" },
+  { path: "/loans", element: <Loans />, name: "Loans", role: "operator" },
   { path: "/request-loan", element: <RequestLoan />, name: "Request Peminjaman" },
   { path: "/returns", element: <Returns />, name: "Returns" },
   { path: "/reports", element: <Reports />, name: "Reports", role: "admin" },
+  { path: "/settings", element: <Settings />, name: "Settings", role: "admin" },
   { path: "/notifications", element: <Notifications />, name: "Notifications" }
 ];
 

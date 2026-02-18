@@ -96,14 +96,14 @@ export default function OperatorDashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Operator Dashboard</h1>
-        <p className="text-text-secondary">Daily operations and inventory management.</p>
+        <h1 className="text-3xl font-bold tracking-tight">Beranda</h1>
+        <p className="text-text-secondary">Operasional harian dan manajemen inventaris.</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Today's Loans</CardTitle>
+            <CardTitle className="text-sm font-medium">Peminjaman Hari Ini</CardTitle>
             <Activity className="h-4 w-4 text-text-secondary" />
           </CardHeader>
           <CardContent>
@@ -112,7 +112,7 @@ export default function OperatorDashboard() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Loans</CardTitle>
+            <CardTitle className="text-sm font-medium">Peminjaman Aktif</CardTitle>
              <FileText className="h-4 w-4 text-text-secondary" />
           </CardHeader>
            <CardContent>
@@ -121,7 +121,7 @@ export default function OperatorDashboard() {
         </Card>
         <Card>
            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Low Stock</CardTitle>
+            <CardTitle className="text-sm font-medium">Stok Rendah</CardTitle>
             <AlertTriangle className="h-4 w-4 text-status-warning" />
           </CardHeader>
           <CardContent>
@@ -130,7 +130,7 @@ export default function OperatorDashboard() {
         </Card>
         <Card>
            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Items</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Item</CardTitle>
             <Package className="h-4 w-4 text-text-secondary" />
           </CardHeader>
           <CardContent>
@@ -143,17 +143,17 @@ export default function OperatorDashboard() {
          <div className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
+                <CardTitle>Aksi Cepat (CTA)</CardTitle>
               </CardHeader>
               <CardContent className="grid gap-2">
                 <Link to="/loans">
                   <Button variant="outline" className="w-full justify-start">
-                    <FileText className="mr-2 h-4 w-4" /> New Loan
+                    <FileText className="mr-2 h-4 w-4" /> Proses Peminjaman
                   </Button>
                 </Link>
                 <Link to="/returns">
                   <Button variant="outline" className="w-full justify-start">
-                    <RotateCw className="mr-2 h-4 w-4" /> Process Returns
+                    <RotateCw className="mr-2 h-4 w-4" /> Process Pengembalian
                   </Button>
                 </Link>
               </CardContent>
@@ -162,7 +162,7 @@ export default function OperatorDashboard() {
             {lowStock.length > 0 && (
               <Card className="border-status-warning/20 bg-yellow-50/50">
                 <CardHeader>
-                  <CardTitle className="text-amber-800">Stock Alerts</CardTitle>
+                  <CardTitle className="text-amber-800">Peringatan Stok Rendah</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
@@ -181,15 +181,15 @@ export default function OperatorDashboard() {
          <div className="lg:col-span-2">
             <Card className="h-full">
               <CardHeader>
-                <CardTitle>Recent Transactions</CardTitle>
+                <CardTitle>Transaksi Terbaru</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
                  <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Borrower</TableHead>
+                        <TableHead>Tanggal</TableHead>
+                        <TableHead>Peminjam</TableHead>
                         <TableHead>Status</TableHead>
                       </TableRow>
                     </TableHeader>

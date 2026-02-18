@@ -80,41 +80,41 @@ export default function EmployeeDashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Your Dashboard</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Beranda</h1>
         <p className="text-text-secondary">
-          Welcome back, <span className="font-semibold text-primary">{user?.name || "User"}</span>
+          Selamat Datang, <span className="font-semibold text-primary">{user?.name || "User"}</span>
         </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Loans</CardTitle>
+            <CardTitle className="text-sm font-medium">Peminjaman Aktif</CardTitle>
             <FileText className="h-4 w-4 text-text-secondary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{activeLoans.length}</div>
-            <p className="text-xs text-text-secondary">Currently borrowed</p>
+            <p className="text-xs text-text-secondary">Sedang dipinjam</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-             <CardTitle className="text-sm font-medium">Total History</CardTitle>
+             <CardTitle className="text-sm font-medium">Total Transaksi</CardTitle>
              <History className="h-4 w-4 text-text-secondary" />
           </CardHeader>
           <CardContent>
              <div className="text-2xl font-bold">{loans.length}</div>
-             <p className="text-xs text-text-secondary">All transactions</p>
+             <p className="text-xs text-text-secondary">Semua transaksi</p>
           </CardContent>
         </Card>
         <Card className="bg-primary text-primary-foreground">
           <CardHeader className="pb-2">
-            <CardTitle className="text-white">Need to return items?</CardTitle>
+            <CardTitle className="text-white">Perlu mengembalikan item?</CardTitle>
           </CardHeader>
           <CardContent>
             <Link to="/returns">
                <Button variant="secondary" className="w-full">
-                 <RotateCw className="mr-2 h-4 w-4" /> Process Return
+                 <RotateCw className="mr-2 h-4 w-4" /> Proses Pengembalian
                </Button>
             </Link>
           </CardContent>
@@ -124,14 +124,14 @@ export default function EmployeeDashboard() {
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Active Borrowings</CardTitle>
+            <CardTitle>Peminjaman Aktif</CardTitle>
           </CardHeader>
           <CardContent>
             {activeLoans.length === 0 ? (
                <div className="text-center py-8">
-                 <p className="text-text-secondary">No active borrowings</p>
+                 <p className="text-text-secondary">Tidak ada peminjaman aktif</p>
                  <Link to="/loans">
-                   <Button variant="link" className="mt-2 text-primary">Browse available items</Button>
+                   <Button variant="link" className="mt-2 text-primary">Cari barang yang tersedia</Button>
                  </Link>
                </div>
             ) : (
@@ -156,16 +156,16 @@ export default function EmployeeDashboard() {
 
         <Card>
            <CardHeader>
-             <CardTitle>Recent History</CardTitle>
+             <CardTitle>Riwayat Terbaru</CardTitle>
            </CardHeader>
            <CardContent>
              <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Date</TableHead>
+                      <TableHead>Tanggal</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead>Returned</TableHead>
+                      <TableHead>Dikembalikan</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -184,7 +184,7 @@ export default function EmployeeDashboard() {
               <div className="mt-4 flex justify-end">
                 <Link to="/loans">
                    <Button variant="ghost" size="sm" className="gap-1">
-                     View all <ArrowRight className="h-4 w-4" />
+                     Lihat semua <ArrowRight className="h-4 w-4" />
                    </Button>
                 </Link>
               </div>

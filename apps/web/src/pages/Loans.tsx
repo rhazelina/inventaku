@@ -122,12 +122,12 @@ export default function Loans() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Loans</h1>
-          <p className="text-text-secondary">Manage loan requests and active loans.</p>
+          <h1 className="text-3xl font-bold tracking-tight">Info Peminjaman</h1>
+          <p className="text-text-secondary">Kelola permintaan peminjaman dan peminjaman aktif.</p>
         </div>
         <Button variant="outline" onClick={loadData} disabled={loading}>
           <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
-          Refresh
+          Perbarui
         </Button>
       </div>
 
@@ -163,7 +163,7 @@ export default function Loans() {
                 activeTab === "active" ? "bg-background shadow-sm text-text-primary" : "text-text-secondary hover:text-text-primary"
               }`}
             >
-              Active ({loans.filter(l => ["DIPINJAM", "SEBAGIAN"].includes(l.status)).length})
+              Sedang Aktif ({loans.filter(l => ["DIPINJAM", "SEBAGIAN"].includes(l.status)).length})
             </button>
             <button
               onClick={() => setActiveTab("history")}
@@ -171,14 +171,14 @@ export default function Loans() {
                 activeTab === "history" ? "bg-background shadow-sm text-text-primary" : "text-text-secondary hover:text-text-primary"
               }`}
             >
-              History
+              Riwayat
             </button>
           </div>
 
           <div className="relative w-full sm:w-72">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-text-secondary" />
             <Input
-              placeholder="Search user or loan ID..."
+              placeholder="Cari peminjam atau ID peminjaman..."
               className="pl-9"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -213,7 +213,7 @@ export default function Loans() {
                   ) : filteredLoans.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={6} className="h-32 text-center text-text-secondary">
-                        No loans found.
+                        Tidak ada data peminjaman
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -258,7 +258,7 @@ export default function Loans() {
                                   onClick={() => handleApprove(loan.id)}
                                   disabled={loading}
                                 >
-                                  <Check className="h-3 w-3 mr-1" /> Approve
+                                  <Check className="h-3 w-3 mr-1" /> Setujui
                                 </Button>
                                 <Button 
                                   size="sm" 
@@ -267,7 +267,7 @@ export default function Loans() {
                                   onClick={() => handleReject(loan.id)}
                                   disabled={loading}
                                 >
-                                  <X className="h-3 w-3 mr-1" /> Reject
+                                  <X className="h-3 w-3 mr-1" /> Tolak
                                 </Button>
                               </>
                             )}
