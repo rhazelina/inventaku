@@ -1,6 +1,6 @@
 // lib/api.ts
 
-const API_BASE = "http://localhost:3000";
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || "http://localhost:3000").replace(/\/+$/, "");
 
 interface RequestOptions extends Omit<RequestInit, 'body'> {
   body?: any;
@@ -52,6 +52,11 @@ async function request(path: string, opts: RequestOptions = {}) {
 
     // optional global redirect
     if (res.status === 401 && redirectOn401) {
+      try {
+        localStorage.removeItem("user");
+      } catch {
+        // no-op
+      }
       window.location.assign("/login");
       return null;
     }
@@ -83,7 +88,6 @@ export function apiLogin({ username, password }: any) {
 export function apiMe() {
   return request("/auth/me", {
     method: "GET",
-    ignore401: true,
   });
 }
 
@@ -325,11 +329,40 @@ export const apiAudit = {
 export const apiNotifications = {
   list: (params: any = {}) => {
     const qs = new URLSearchParams(params).toString();
-    return request(`/notifications${qs ? `?${qs}` : ""}`, { method: "GET" });
+    return request(`/notifications${qs ? `?${qs}` : ""}`, {
+      method: "GET",
+      ignore401: true,
+      redirectOn401: false,
+    });
   },
-  get: (id: string | number) => request(`/notifications/${id}`, { method: "GET" }),
-  markAsRead: (id: string | number) => request(`/notifications/${id}/read`, { method: "POST" }),
-  markAllAsRead: () => request(`/notifications/read-all`, { method: "POST" }),
-  delete: (id: string | number) => request(`/notifications/${id}`, { method: "DELETE" }),
-  deleteAll: () => request(`/notifications`, { method: "DELETE" }),
+  get: (id: string | number) =>
+    request(`/notifications/${id}`, {
+      method: "GET",
+      ignore401: true,
+      redirectOn401: false,
+    }),
+  markAsRead: (id: string | number) =>
+    request(`/notifications/${id}/read`, {
+      method: "POST",
+      ignore401: true,
+      redirectOn401: false,
+    }),
+  markAllAsRead: () =>
+    request(`/notifications/read-all`, {
+      method: "POST",
+      ignore401: true,
+      redirectOn401: false,
+    }),
+  delete: (id: string | number) =>
+    request(`/notifications/${id}`, {
+      method: "DELETE",
+      ignore401: true,
+      redirectOn401: false,
+    }),
+  deleteAll: () =>
+    request(`/notifications`, {
+      method: "DELETE",
+      ignore401: true,
+      redirectOn401: false,
+    }),
 };

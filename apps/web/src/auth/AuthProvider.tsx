@@ -21,19 +21,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
         if (storedUser) {
           const parsedUser = JSON.parse(storedUser);
           setUser(parsedUser);
-          return true;
+          return;
         }
       } catch (e) {
         console.error("Failed to parse stored user:", e);
         localStorage.removeItem("user");
       }
-      return false;
     };
 
-    if (loadStoredUser()) {
-      setBooting(false);
-      return;
-    }
+    // Keep optimistic render from local storage, but always verify with backend
+    // to prevent redirect loops when cookie session has expired.
+    loadStoredUser();
 
     if (ran.current) return;
     ran.current = true;

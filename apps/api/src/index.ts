@@ -82,6 +82,19 @@ type AuditLog = {
   details?: any;
 };
 
+type NotificationType = "info" | "success" | "warning" | "error";
+
+type Notification = {
+  id: string;
+  userId: string;
+  title: string;
+  message: string;
+  type: NotificationType;
+  actionUrl?: string | null;
+  readAt?: string | null;
+  createdAt: string;
+};
+
 // =======================
 // Demo Data
 // =======================
@@ -124,6 +137,28 @@ const units: Unit[] = [
 ];
 
 const auditLogs: AuditLog[] = [];
+const notifications: Notification[] = [
+  {
+    id: crypto.randomUUID(),
+    userId: "u1",
+    title: "Sistem Aktif",
+    message: "Sistem notifikasi berhasil diaktifkan.",
+    type: "info",
+    actionUrl: "/notifications",
+    readAt: null,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: crypto.randomUUID(),
+    userId: "u2",
+    title: "Sistem Aktif",
+    message: "Sistem notifikasi berhasil diaktifkan.",
+    type: "info",
+    actionUrl: "/notifications",
+    readAt: null,
+    createdAt: new Date().toISOString(),
+  },
+];
 
 // =======================
 // App + Config
@@ -181,6 +216,57 @@ function computeLoanStatus(loan: Loan): LoanStatus {
   if (returned <= 0) return "DIPINJAM";
   if (returned >= total) return "SELESAI";
   return "SEBAGIAN";
+}
+
+function createNotification(input: {
+  userId: string;
+  title: string;
+  message: string;
+  type?: NotificationType;
+  actionUrl?: string | null;
+}) {
+  const notif: Notification = {
+    id: crypto.randomUUID(),
+    userId: input.userId,
+    title: input.title,
+    message: input.message,
+    type: input.type ?? "info",
+    actionUrl: input.actionUrl ?? null,
+    readAt: null,
+    createdAt: new Date().toISOString(),
+  };
+  notifications.unshift(notif);
+  return notif;
+}
+
+function notifyByRoles(
+  roles: Role[],
+  payload: { title: string; message: string; type?: NotificationType; actionUrl?: string | null }
+) {
+  const roleSet = new Set(roles);
+  for (const u of users) {
+    if (roleSet.has(u.role)) {
+      createNotification({
+        userId: u.id,
+        title: payload.title,
+        message: payload.message,
+        type: payload.type,
+        actionUrl: payload.actionUrl,
+      });
+    }
+  }
+}
+
+function toNotificationResponse(n: Notification) {
+  return {
+    id: n.id,
+    title: n.title,
+    message: n.message,
+    type: n.type,
+    action_url: n.actionUrl ?? null,
+    read_at: n.readAt ?? null,
+    created_at: n.createdAt,
+  };
 }
 
 // =======================
@@ -404,7 +490,7 @@ app.post("/auth/login", async (c) => {
 
 app.get("/auth/me", (c) => {
   const user = getSessionUser(c);
-  if (!user) return c.json({ user: null }, 401);
+  if (!user) return c.json({ user: null }, 200);
   return c.json({ user: sanitizeUser(user) });
 });
 
@@ -636,6 +722,12 @@ app.post("/loans", requireAuth(), async (c) => {
   };
   
   loans.unshift(newLoan);
+  notifyByRoles(["admin", "operator"], {
+    title: "Pengajuan Peminjaman Baru",
+    message: `${peminjam.name} mengajukan peminjaman baru.`,
+    type: "info",
+    actionUrl: "/loans",
+  });
   logAudit("CREATE_REQUEST", "Loan", newLoan.id, me, { peminjam: peminjam.name });
   return c.json({ data: newLoan }, 201);
 });
@@ -675,6 +767,13 @@ app.post("/loans/:id/approve", requireAuth(), requireRole(["admin", "operator"])
   
   // 3. Update Status
   loan.status = "DIPINJAM";
+  createNotification({
+    userId: loan.peminjamId,
+    title: "Peminjaman Disetujui",
+    message: `Pengajuan peminjaman (${loan.id.slice(0, 8)}) telah disetujui.`,
+    type: "success",
+    actionUrl: "/loans",
+  });
   
   logAudit("APPROVE", "Loan", loan.id, me);
   return c.json({ data: loan });
@@ -692,6 +791,13 @@ app.post("/loans/:id/reject", requireAuth(), requireRole(["admin", "operator"]),
   
   // Update status only, no stock change
   loan.status = "DITOLAK";
+  createNotification({
+    userId: loan.peminjamId,
+    title: "Peminjaman Ditolak",
+    message: `Pengajuan peminjaman (${loan.id.slice(0, 8)}) ditolak.`,
+    type: "error",
+    actionUrl: "/loans",
+  });
   
   logAudit("REJECT", "Loan", loan.id, me);
   return c.json({ data: loan });
@@ -724,6 +830,12 @@ app.post("/loans/:id/return", requireAuth(), async (c) => {
   loan.status = computeLoanStatus(loan);
   if (loan.status === "SELESAI") {
     loan.returnedAt = todayYMD();
+    notifyByRoles(["admin", "operator"], {
+      title: "Pengembalian Selesai",
+      message: `${loan.peminjamNama} telah menyelesaikan pengembalian pinjaman.`,
+      type: "success",
+      actionUrl: "/returns",
+    });
   }
   
   return c.json({ data: loan });
@@ -959,6 +1071,72 @@ app.get("/audit-logs", requireAuth(), requireRole(["admin", "operator"]), (c) =>
   if (userId) rows = rows.filter((l) => l.userId === userId);
   
   return c.json({ data: rows });
+});
+
+// =======================
+// Routes: Notifications
+// =======================
+app.get("/notifications", requireAuth(), (c) => {
+  const me = c.get("user") as User;
+  const limit = Math.max(1, Math.min(Number(c.req.query("limit") || "50"), 100));
+  const rows = notifications
+    .filter((n) => n.userId === me.id)
+    .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
+    .slice(0, limit)
+    .map(toNotificationResponse);
+  return c.json({ data: rows });
+});
+
+app.get("/notifications/:id", requireAuth(), (c) => {
+  const me = c.get("user") as User;
+  const id = c.req.param("id");
+  const row = notifications.find((n) => n.id === id && n.userId === me.id);
+  if (!row) return c.json({ message: "Notifikasi tidak ditemukan" }, 404);
+  return c.json({ data: toNotificationResponse(row) });
+});
+
+app.post("/notifications/:id/read", requireAuth(), (c) => {
+  const me = c.get("user") as User;
+  const id = c.req.param("id");
+  const row = notifications.find((n) => n.id === id && n.userId === me.id);
+  if (!row) return c.json({ message: "Notifikasi tidak ditemukan" }, 404);
+  if (!row.readAt) row.readAt = new Date().toISOString();
+  return c.json({ data: toNotificationResponse(row) });
+});
+
+app.post("/notifications/read-all", requireAuth(), (c) => {
+  const me = c.get("user") as User;
+  const now = new Date().toISOString();
+  let changed = 0;
+  for (const n of notifications) {
+    if (n.userId === me.id && !n.readAt) {
+      n.readAt = now;
+      changed += 1;
+    }
+  }
+  return c.json({ ok: true, changed });
+});
+
+app.delete("/notifications/:id", requireAuth(), (c) => {
+  const me = c.get("user") as User;
+  const id = c.req.param("id");
+  const idx = notifications.findIndex((n) => n.id === id && n.userId === me.id);
+  if (idx === -1) return c.json({ message: "Notifikasi tidak ditemukan" }, 404);
+  notifications.splice(idx, 1);
+  return c.json({ ok: true });
+});
+
+app.delete("/notifications", requireAuth(), (c) => {
+  const me = c.get("user") as User;
+  let deleted = 0;
+  for (let i = notifications.length - 1; i >= 0; i--) {
+    const row = notifications[i];
+    if (row && row.userId === me.id) {
+      notifications.splice(i, 1);
+      deleted += 1;
+    }
+  }
+  return c.json({ ok: true, deleted });
 });
 
 

@@ -1,5 +1,5 @@
 // src/components/Navbar.tsx
-import { useEffect, useRef, useState, useMemo, useCallback, JSX, FC } from "react";
+import { useEffect, useRef, useState, useMemo, useCallback, type FC } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import {
   Menu, X, ChevronDown, ChevronUp,
@@ -30,19 +30,17 @@ const NavItem: FC<NavItemProps> = ({ to, icon: Icon, label, onClick, end = false
         onClick={onClick}
         className={({ isActive }) =>
           cx(
-            "flex items-center gap-2 py-2 px-4 rounded-lg transition-all duration-200 group",
-            "text-gray-700 hover:text-blue-600 hover:bg-blue-50",
-            isActive && "text-blue-600 bg-blue-50 font-medium shadow-sm"
+            "flex items-center gap-2 rounded-lg px-3 py-2 transition-all duration-200 group",
+            "text-slate-200 hover:text-white hover:bg-white/10",
+            isActive && "bg-[var(--color-primary)] text-white font-medium shadow-sm"
           )
         }
         end={end}
       >
-        {Icon && <Icon className="w-4 h-4 group-hover:scale-110 transition-transform" />}
-        <span className="relative">
+        {Icon && <Icon className="h-4 w-4 shrink-0 group-hover:scale-110 transition-transform" />}
+        <span className="relative whitespace-nowrap text-sm font-medium leading-none">
           {label}
-          {badge && (
-            <span className="absolute -top-2 -right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
-          )}
+          {badge && <span className="ml-1.5 inline-flex h-1.5 w-1.5 rounded-full bg-red-400 align-middle" />}
         </span>
       </NavLink>
     </li>
@@ -63,25 +61,25 @@ const MegaMenuItem: FC<MegaMenuItemProps> = ({ to, icon: Icon, title, descriptio
     <Link
       to={to}
       onClick={onClick}
-      className="group block p-4 rounded-xl border border-gray-100 hover:border-blue-200 hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-white transition-all duration-300 hover:shadow-md"
+      className="group block p-4 rounded-xl border border-white/10 hover:border-white/25 hover:bg-white/10 transition-all duration-300 hover:shadow-md"
     >
       <div className="flex items-start gap-3">
         <div className="relative">
-          <div className="p-2 rounded-lg bg-gradient-to-br from-blue-100 to-blue-50 text-blue-600 group-hover:from-blue-200 group-hover:to-blue-100 transition-all duration-300">
+          <div className="p-2 rounded-lg bg-white/10 text-slate-100 transition-all duration-300">
             {Icon && <Icon className="w-5 h-5" />}
           </div>
           {badge && (
-            <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></span>
+            <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-[#2f2f2f]"></span>
           )}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2">
-            <h3 className="font-semibold text-gray-900 group-hover:text-blue-700 group-hover:translate-x-1 transition-transform">
+            <h3 className="font-semibold text-slate-100 group-hover:text-white group-hover:translate-x-1 transition-transform">
               {title}
             </h3>
-            <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-blue-400 rotate-0 group-hover:rotate-90 transition-all duration-300" />
+            <ChevronDown className="w-4 h-4 text-slate-300 group-hover:text-white rotate-0 group-hover:rotate-90 transition-all duration-300" />
           </div>
-          <p className="mt-1 text-sm text-gray-600 line-clamp-2">
+          <p className="mt-1 text-sm text-slate-300 line-clamp-2">
             {description}
           </p>
         </div>
@@ -101,7 +99,7 @@ const MobileMenuButton: FC<MobileMenuButtonProps> = ({ isOpen, onClick, badge })
     <button
       type="button"
       onClick={onClick}
-      className="relative inline-flex items-center justify-center p-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+      className="relative inline-flex items-center justify-center p-2 rounded-lg text-slate-200 hover:text-white hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/30 transition-colors"
       aria-controls="main-menu"
       aria-expanded={isOpen}
       aria-label={isOpen ? "Close menu" : "Open menu"}
@@ -118,7 +116,7 @@ const NotificationBadge: FC<{ count?: number }> = ({ count }) => {
   if (!count || count === 0) return null;
   
   return (
-    <span className="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 text-xs font-medium text-white bg-red-500 rounded-full border-2 border-white">
+    <span className="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 text-xs font-medium text-white bg-red-500 rounded-full border-2 border-[var(--color-sidebar)]">
       {count > 9 ? "9+" : count}
     </span>
   );
@@ -236,10 +234,10 @@ interface NavItemDef {
 
 const navItems: NavItemDef[] = [
   { to: "/dashboard", icon: Home, label: "Dashboard", end: true, requiredRole: "employee" },
-  { to: "/request-loan", icon: ArrowLeftRight, label: "Buat Peminjaman", requiredRole: "employee" },
-  { to: "/loans", icon: FileText, label: "Verifikasi Peminjaman", requiredRole: "operator", badge: true },
+  { to: "/request-loan", icon: ArrowLeftRight, label: "Peminjaman", requiredRole: "employee" },
+  { to: "/loans", icon: FileText, label: "Verifikasi", requiredRole: "operator", badge: true },
   { to: "/returns", icon: ArrowLeftRight, label: "Pengembalian", requiredRole: "operator", badge: true },
-  { to: "/reports", icon: FileText, label: "Laporan", requiredRole: "operator" }
+  { to: "/reports", icon: FileText, label: "Laporan", requiredRole: "admin" }
 ];
 
 // Fallback role checking function (moved outside component)
@@ -362,14 +360,14 @@ export default function Navbar() {
   // Early return if no user during initial loading
   if (!user && loading) {
     return (
-      <nav className="sticky top-0 z-50 w-full bg-white/95 border-b border-gray-200/60 backdrop-blur-lg">
+      <nav className="sticky top-0 z-50 w-full border-b border-white/10 bg-[var(--color-sidebar)]">
         <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gray-200 rounded-lg animate-pulse"></div>
+              <div className="w-10 h-10 bg-white/20 rounded-lg animate-pulse"></div>
               <div className="space-y-2">
-                <div className="w-24 h-4 bg-gray-200 rounded animate-pulse"></div>
-                <div className="w-32 h-3 bg-gray-200 rounded animate-pulse"></div>
+                <div className="w-24 h-4 bg-white/20 rounded animate-pulse"></div>
+                <div className="w-32 h-3 bg-white/15 rounded animate-pulse"></div>
               </div>
             </div>
           </div>
@@ -381,34 +379,34 @@ export default function Navbar() {
   return (
     <nav
       ref={navRef}
-      className="sticky top-0 z-50 w-full bg-white/95 border-b border-gray-200/60 backdrop-blur-lg supports-[backdrop-filter]:bg-white/80"
+      className="sticky top-0 z-50 w-full border-b border-white/10 bg-[var(--color-sidebar)]"
     >
       <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-16 gap-3">
           {/* Logo */}
           <Link
             to="/dashboard"
             onClick={closeAll}
-            className="flex items-center gap-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-xl p-1 transition-all hover:scale-105 duration-300"
+            className="flex items-center gap-2 rounded-xl p-1 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-white/30"
             aria-label="Inventaku Home"
           >
-            <div className="relative p-2 rounded-xl bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 text-white shadow-lg hover:shadow-xl transition-shadow">
+            <div className="relative p-2 rounded-xl bg-[var(--color-primary)] text-white shadow-lg hover:shadow-xl transition-shadow">
               <BookOpen className="w-6 h-6" />
-              <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-emerald-400 rounded-full border-2 border-white"></div>
+              <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-emerald-400 rounded-full border-2 border-[var(--color-sidebar)]"></div>
             </div>
-            <div className="flex flex-col">
-              <span className="text-xl font-bold text-gray-900 bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
+            <div className="flex flex-col leading-tight">
+              <span className="text-xl font-bold text-white">
                 Inventaku
               </span>
-              <span className="text-xs text-gray-500 font-medium tracking-tight">
+              <span className="hidden xl:block text-xs text-slate-300 font-medium tracking-tight">
                 Inventory Management System
               </span>
             </div>
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-2">
-            <ul className="flex items-center space-x-1">
+          <div className="hidden xl:flex items-center gap-2 min-w-0 flex-1 justify-end">
+            <ul className="flex items-center gap-1 min-w-0">
               <NavItem 
                 to="/dashboard" 
                 icon={Home} 
@@ -423,16 +421,18 @@ export default function Navbar() {
                     type="button"
                     onClick={toggleMegaMenu}
                     className={cx(
-                      "flex items-center gap-2 py-2 px-4 rounded-lg transition-all duration-300 group",
-                      "text-gray-700 hover:text-blue-600 hover:bg-blue-50",
-                      "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
-                      megaOpen && "text-blue-600 bg-blue-50 shadow-sm"
+                      "flex items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 transition-all duration-300 group",
+                      "text-slate-200 hover:text-white hover:bg-white/10",
+                      "focus:outline-none focus:ring-2 focus:ring-white/30",
+                      megaOpen && "bg-[var(--color-primary)] text-white shadow-sm"
                     )}
                     aria-expanded={megaOpen}
                     aria-controls="mega-menu"
                   >
                     <Database className="w-4 h-4 group-hover:rotate-12 transition-transform" />
-                    <span>Master Data</span>
+                    <span className="text-sm font-medium leading-none">
+                      Master Data
+                    </span>
                     {megaOpen ? 
                       <ChevronUp className="w-4 h-4 animate-bounce" /> : 
                       <ChevronDown className="w-4 h-4 group-hover:animate-pulse" />
@@ -444,16 +444,16 @@ export default function Navbar() {
                       id="mega-menu"
                       className="absolute left-0 lg:left-1/2 lg:transform lg:-translate-x-1/2 top-full mt-2 w-[95vw] lg:w-screen max-w-4xl animate-fadeIn"
                     >
-                      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white/95 shadow-2xl ring-1 ring-black/5 backdrop-blur-lg">
+                      <div className="overflow-hidden rounded-2xl border border-white/15 bg-[#2f2f2f] shadow-2xl ring-1 ring-black/40 backdrop-blur-lg">
                         <div className="relative p-6">
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                             {filteredMegaSections.map((section, idx) => (
                               <div key={idx} className="space-y-4">
                                 <div className="flex items-center gap-3">
-                                  <div className="p-2 rounded-lg bg-gradient-to-br from-gray-100 to-gray-50">
-                                    {section.icon && <section.icon className="w-5 h-5 text-gray-600" />}
+                                  <div className="p-2 rounded-lg bg-white/10">
+                                    {section.icon && <section.icon className="w-5 h-5 text-slate-200" />}
                                   </div>
-                                  <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">
+                                  <h3 className="text-sm font-semibold text-slate-200 uppercase tracking-wider">
                                     {section.title}
                                   </h3>
                                 </div>
@@ -498,7 +498,7 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={() => navigate('/notifications')}
-                className="p-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors relative"
+                className="p-2 rounded-lg text-slate-200 hover:text-white hover:bg-white/10 transition-colors relative"
               >
                 <Bell className="w-5 h-5" />
                 <NotificationBadge count={unreadCount} />
@@ -509,38 +509,38 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={toggleUserMenu}
-                className="flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all duration-300 group"
+                className="flex items-center gap-2 rounded-xl border border-white/20 bg-white/5 px-3 py-2 transition-all duration-300 group hover:bg-white/10 hover:border-white/30"
               >
                 <div className="relative">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 text-blue-700 flex items-center justify-center font-semibold shadow-sm group-hover:scale-110 transition-transform">
+                  <div className="w-8 h-8 rounded-full bg-[var(--color-primary)] text-white flex items-center justify-center font-semibold shadow-sm group-hover:scale-110 transition-transform">
                     {(user?.name || user?.username || "U").slice(0, 1).toUpperCase()}
                   </div>
-                  <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-emerald-400 rounded-full border-2 border-white"></div>
+                  <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-emerald-400 rounded-full border-2 border-[var(--color-sidebar)]"></div>
                 </div>
-                <div className="hidden lg:block text-left leading-tight">
-                  <div className="text-sm font-semibold text-gray-900 truncate max-w-[140px] group-hover:text-blue-600 transition-colors">
+                <div className="hidden xl:block text-left leading-tight">
+                  <div className="text-sm font-semibold text-white truncate max-w-[140px] transition-colors">
                     {user?.name || user?.username || "User"}
                   </div>
-                  <div className="text-xs text-gray-500 group-hover:text-gray-700">
+                  <div className="text-xs text-slate-300">
                     {user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : "-"}
                   </div>
                 </div>
                 <ChevronDown className={cx(
-                  "w-4 h-4 text-gray-400 transition-transform duration-300",
+                  "w-4 h-4 text-slate-300 transition-transform duration-300",
                   userMenuOpen && "rotate-180"
                 )} />
               </button>
 
               {userMenuOpen && (
-                <div className="absolute right-0 top-full mt-2 w-64 rounded-xl border border-gray-200 bg-white shadow-2xl ring-1 ring-black/5 animate-fadeIn">
-                  <div className="p-4 border-b border-gray-100">
-                    <div className="font-medium text-gray-900">{user?.name || user?.username}</div>
-                    <div className="text-sm text-gray-500">{user?.email || user?.username}</div>
+                <div className="absolute right-0 top-full mt-2 w-64 rounded-xl border border-white/20 bg-[#2f2f2f] shadow-2xl ring-1 ring-black/40 animate-fadeIn">
+                  <div className="p-4 border-b border-white/10">
+                    <div className="font-medium text-white">{user?.name || user?.username}</div>
+                    <div className="text-sm text-slate-300">{user?.email || user?.username}</div>
                     <div className="mt-2 flex items-center gap-2">
-                      <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-full">
+                      <span className="px-2 py-1 text-xs font-medium bg-blue-500/20 text-blue-200 rounded-full">
                         {user?.role || "User"}
                       </span>
-                      <span className="px-2 py-1 text-xs font-medium bg-emerald-100 text-emerald-700 rounded-full">
+                      <span className="px-2 py-1 text-xs font-medium bg-emerald-500/20 text-emerald-200 rounded-full">
                         Active
                       </span>
                     </div>
@@ -549,17 +549,17 @@ export default function Navbar() {
                     <Link
                       to="/profile"
                       onClick={closeAll}
-                      className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+                      className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-200 hover:bg-white/10 transition-colors"
                     >
-                      <User className="w-4 h-4 text-gray-400" />
+                      <User className="w-4 h-4 text-slate-300" />
                       <span>Profil Saya</span>
                     </Link>
                     <Link
                       to="/settings"
                       onClick={closeAll}
-                      className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+                      className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-200 hover:bg-white/10 transition-colors"
                     >
-                      <Settings className="w-4 h-4 text-gray-400" />
+                      <Settings className="w-4 h-4 text-slate-300" />
                       <span>Pengaturan</span>
                     </Link>
                     <button
@@ -576,11 +576,11 @@ export default function Navbar() {
             </div>
           </div>
 
-          <div className="md:hidden flex items-center gap-2">
+          <div className="xl:hidden flex items-center gap-2">
             <button
               type="button"
               onClick={() => navigate('/notifications')}
-              className="p-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors relative"
+              className="p-2 rounded-lg text-slate-200 hover:text-white hover:bg-white/10 transition-colors relative"
             >
               <Bell className="w-5 h-5" />
               <NotificationBadge count={unreadCount} />
@@ -596,32 +596,32 @@ export default function Navbar() {
         <div
           id="main-menu"
           className={cx(
-            "md:hidden transition-all duration-300 ease-in-out overflow-hidden flex flex-col items-center",
+            "xl:hidden transition-all duration-300 ease-in-out overflow-hidden flex flex-col items-center",
             mobileOpen ? "max-h-[90vh] opacity-100 visible" : "max-h-0 opacity-0 invisible"
           )}
         >
-          <div className="py-4 border-t border-gray-200/60 bg-white/95 backdrop-blur-lg w-full">
+          <div className="py-4 border-t border-white/10 bg-[var(--color-sidebar)] backdrop-blur-lg w-full">
             <div className="px-4 pb-4">
-              <div className="rounded-xl border border-gray-200 bg-gradient-to-r from-white to-blue-50/50 p-4">
+              <div className="rounded-xl border border-white/20 bg-white/5 p-4">
                 <div className="flex items-center gap-3">
                   <div className="relative">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 text-blue-700 flex items-center justify-center font-semibold text-lg shadow-sm">
+                    <div className="w-12 h-12 rounded-full bg-[var(--color-primary)] text-white flex items-center justify-center font-semibold text-lg shadow-sm">
                       {(user?.name || user?.username || "U").slice(0, 1).toUpperCase()}
                     </div>
-                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-400 rounded-full border-2 border-white"></div>
+                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-400 rounded-full border-2 border-[var(--color-sidebar)]"></div>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-semibold text-gray-900 truncate text-lg">
+                    <div className="font-semibold text-white truncate text-lg">
                       {user?.name || user?.username || "User"}
                     </div>
-                    <div className="text-sm text-gray-600">{user?.email || user?.username}</div>
+                    <div className="text-sm text-slate-300">{user?.email || user?.username}</div>
                   </div>
                 </div>
                 <div className="mt-4 flex gap-2">
                   <Link
                     to="/profile"
                     onClick={closeAll}
-                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors"
+                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-white/20 text-slate-100 hover:bg-white/10 transition-colors"
                   >
                     <User className="w-4 h-4" />
                     <span>Profil</span>
@@ -654,14 +654,14 @@ export default function Navbar() {
                     onClick={toggleMegaMenu}
                     className={cx(
                       "flex items-center justify-between w-full py-3 px-4 rounded-lg transition-all duration-300",
-                      "text-gray-700 hover:text-blue-600 hover:bg-blue-50",
-                      "border border-transparent hover:border-blue-200",
-                      megaOpen && "text-blue-600 bg-blue-50 border-blue-200 shadow-sm"
+                      "text-slate-100 hover:bg-white/10",
+                      "border border-transparent hover:border-white/20",
+                      megaOpen && "bg-[var(--color-primary)] border-white/30 shadow-sm"
                     )}
                     aria-expanded={megaOpen}
                   >
                     <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-lg bg-gradient-to-br from-blue-100 to-blue-50 text-blue-600">
+                      <div className="p-2 rounded-lg bg-white/10 text-slate-100">
                         <Database className="w-5 h-5" />
                       </div>
                       <span className="font-semibold">Master Data</span>
@@ -679,14 +679,14 @@ export default function Navbar() {
                           key={item.to}
                           to={item.to}
                           onClick={closeAll}
-                          className="block p-3 rounded-xl hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-white transition-all duration-300 border border-transparent hover:border-blue-200"
+                          className="block p-3 rounded-xl hover:bg-white/10 transition-all duration-300 border border-transparent hover:border-white/20"
                         >
                           <div className="flex items-center gap-3">
-                            <div className="p-2 rounded-lg bg-blue-100 text-blue-600">
+                            <div className="p-2 rounded-lg bg-white/10 text-slate-100">
                               {item.icon && <item.icon className="w-4 h-4" />}
                             </div>
                             <div className="flex-1">
-                              <div className="font-medium text-gray-900">{item.title}</div>
+                              <div className="font-medium text-slate-100">{item.title}</div>
                             </div>
                           </div>
                         </Link>

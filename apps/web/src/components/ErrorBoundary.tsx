@@ -1,6 +1,8 @@
 // src/components/ErrorBoundary.tsx
 import { Component, ErrorInfo, ReactNode } from "react";
 
+const isDev = import.meta.env.DEV;
+
 interface Props {
   children: ReactNode;
 }
@@ -44,7 +46,7 @@ class ErrorBoundary extends Component<Props, State> {
             >
               Reload Page
             </button>
-            {process.env.NODE_ENV === "development" && this.state.error && (
+            {isDev && this.state.error && (
               <pre className="mt-8 p-4 bg-gray-100 rounded-lg text-left text-xs text-red-700 overflow-auto max-h-40">
                 {this.state.error.toString()}
               </pre>
@@ -54,7 +56,7 @@ class ErrorBoundary extends Component<Props, State> {
       );
     }
 
-    return this.children;
+    return this.props.children;
   }
 }
 
